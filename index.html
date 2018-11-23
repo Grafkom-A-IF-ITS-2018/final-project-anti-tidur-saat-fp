@@ -7,6 +7,10 @@
     <script type="text/javascript" src="libs/three.min.js"></script>
     <script type="text/javascript" src="libs/stats.min.js"></script>
     <script type="text/javascript" src="libs/dat.gui.min.js"></script>
+    <script type="text/javascript" src="libs/physi.js"></script>
+    <!-- <script type="text/javascript" src="libs/physijs_worker.js"></script> -->
+    <!-- <script type="text/javascript" src="libs/physijs_worker.js"></script> -->
+    
     <script type="text/javascript" src="helix.js"></script>
     <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
     <style>
@@ -24,15 +28,17 @@
 </div>
 
 <script type="text/javascript">
-
+    Physijs.scripts.worker = 'libs/physijs_worker.js';
+	Physijs.scripts.ammo = 'ammo.js';
+	
     var helix;
 
     function init() {
 
         var stats = initStats();
 
-        var scene = new THREE.Scene();
-
+        var scene = new Physijs.Scene();
+        scene.setGravity(new THREE.Vector3(0, -10, 0));
         var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(0, 5, 10);
         camera.lookAt(scene.position);
@@ -41,7 +47,7 @@
         var renderer = new THREE.WebGLRenderer({
             antialias : true
         });
-        renderer.setClearColor(new THREE.Color(0x7c5953, 1.0));
+        renderer.setClearColor(new THREE.Color(0xffffff, 1.0));
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMapEnabled = false;
 
@@ -55,17 +61,18 @@
 
         scene.add(new THREE.GridHelper(10, 10));
 
-        helix = new Helix();
-        scene.add(helix.getObject());
+        helix = new Helix(scene);
+        // scene.add(helix.getObject());
 
         document.getElementById("WebGL-output").appendChild(renderer.domElement);
 
         render();
 
         function render() {
-
+            helix.update();
             requestAnimationFrame(render);
             renderer.render(scene, camera);
+            // scene.simulate();
         }
 
         function initStats() {
