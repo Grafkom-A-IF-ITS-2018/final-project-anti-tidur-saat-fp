@@ -6,7 +6,8 @@
     <title>Helix </title>
     <script type="text/javascript" src="libs/three.min.js"></script>
     <script type="text/javascript" src="libs/stats.min.js"></script>
-    <script type="text/javascript" src="libs/dat.gui.js"></script>
+    <script type="text/javascript" src="libs/dat.gui.min.js"></script>
+    <script type="text/javascript" src="helix.js"></script>
     <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
     <style>
         body {
@@ -24,6 +25,8 @@
 
 <script type="text/javascript">
 
+    var helix;
+
     function init() {
 
         var stats = initStats();
@@ -36,15 +39,14 @@
         scene.add(camera);
 
         var renderer = new THREE.WebGLRenderer({
-            antialia : true
+            antialias : true
         });
-        var controls = new THREE.OrbitControls(camera, renderer.domElement);
         renderer.setClearColor(new THREE.Color(0x7c5953, 1.0));
         renderer.setSize(window.innerWidth, window.innerHeight);
-        // renderer.shadowMapEnabled = true;
+        renderer.shadowMapEnabled = false;
 
-        var ambientLight = new THREE.AmbientLight(0x040404);
-        scene.add(ambientLight);
+        // var ambientLight = new THREE.AmbientLight(0xffffff);
+        // scene.add(ambientLight);
 
         var spotLight = new THREE.SpotLight(0xffffff);
         spotLight.position.set(0, 1, 25);
@@ -53,24 +55,15 @@
 
         scene.add(new THREE.GridHelper(10, 10));
 
-        var mainCylinderGeom = new THREE.CylinderGeometry(0.5, 0.5, 16, 16, 1,true);
-        var meshMaterial = new THREE.MeshLambertMaterial({color: 0xff0000});
-        var mainCylinder = new THREE.Mesh(mainCylinderGeom,meshMaterial);
-        scene.add(mainCylinder);
-
-
-        var mainCylinderGeom2 = new THREE.CylinderGeometry(2, 2, 0.5, 20, 1,false,0,Math.PI*1.6);
-        var meshMaterial2 = new THREE.MeshLambertMaterial({color: 0xff0000});
-        var mainCylinder2 = new THREE.Mesh(mainCylinderGeom2,meshMaterial2);
-        scene.add(mainCylinder2);
-
+        helix = new Helix();
+        scene.add(helix.getObject());
 
         document.getElementById("WebGL-output").appendChild(renderer.domElement);
-
 
         render();
 
         function render() {
+
             requestAnimationFrame(render);
             renderer.render(scene, camera);
         }
@@ -89,9 +82,20 @@
 
             return stats;
         }
-    }
+    }// close init
+
     window.onload = init
 
+    document.addEventListener("keydown", onDocumentKeyDown, false);
+    function onDocumentKeyDown(event) {
+        var keyCode = event.which;
+        if (keyCode == 65) {//A
+            helix.rotate(true);
+        }
+        else if (keyCode == 68) {//D
+            helix.rotate(false);
+        }
+    };
 
 </script>
 </body>
