@@ -7,7 +7,9 @@ class Game{
         this.gFloors = new THREE.Group();
         this.changeFloor = false;
         this.floors = [];
-
+        camera.position.x = 0;
+        camera.position.y = 2;
+        camera.position.z = 25;
         var geometry = new THREE.SphereGeometry(0.5, 15, 15);
         var material =  Physijs.createMaterial(
             new THREE.MeshBasicMaterial( {color: 0xff0000} ),0.8,1.0
@@ -19,7 +21,7 @@ class Game{
         this.ball.setCcdMotionThreshold(1);
         // Set the radius of the embedded sphere such that it is smaller than the object
         this.ball.setCcdSweptSphereRadius(0.2);
-        console.log(this.ball);
+        // camera.lookAt(this.ball.position);
         this.ball.addEventListener('collision',function(object){
             let x = this.getLinearVelocity().x;
             let y = this.position.y;
@@ -30,12 +32,12 @@ class Game{
             else{
                 this.setLinearVelocity(new THREE.Vector3(x,-3,0));
             }
+            // camera.lookAt(this.position);
+            // camera.position(this.position);        
 
         });
         scene.add(this.ball);
 
-        camera.lookAt(this.ball.position);
-        scene.add(camera);
         this.floorHeight = 0;
         
         var floorGeom = new THREE.CubeGeometry(25,0.5, 0);
@@ -48,10 +50,18 @@ class Game{
         floor.translateY(-2);
         this.floorHeight+=2;
         scene.add(floor);
-
-        scene.add(this.getRandomDisc());
-        scene.add(this.getRandomDisc());
-        scene.add(this.getRandomDisc());
+        floor = this.getRandomDisc();
+        this.floors.push(floor);
+        scene.add(floor.obj);
+        console.log(floor.speed);
+        floor = this.getRandomDisc();
+        this.floors.push(floor);
+        scene.add(floor.obj);
+        console.log(floor.speed);
+        floor = this.getRandomDisc();
+        this.floors.push(floor);
+        scene.add(floor.obj);
+        console.log(floor.speed);
     }
 
     getRandomFloat(min, max) {
@@ -70,7 +80,7 @@ class Game{
         floor.translateY(this.floorHeight);
         floor.translateX(this.getRandomFloat(-15,15));
         this.floorHeight+=4;
-        return floor;
+        return {obj:floor,speed:this.getRandomFloat(-10,10)/100.0};
     }
 
     moveZ(right){
@@ -108,14 +118,31 @@ class Game{
         this.ball._physijs.angularVelocity.z = 0;   
         this.ball.__dirtyPosition=true;
         this.ball.__dirtyRotation=true;
+        let bPos = this.ball.position;
 
         if(this.moveLeft){
-            this.ball.position.x-=0.12; 
+            this.ball.position.x-=0.12;
         }
         else if(this.moveRight){
             this.ball.position.x+=0.12;
         }
+        this.camera.lookAt(bPos);
+        this.camera.position.set(bPos.x,this.getCameraHeight(),25);
+
+        for(let i=0;i<3;i++){
+            let f = this.floors[i];
+            f.obj.__dirtyPosition=true;
+            f.obj.translateX(f.speed);
+            if(f.obj.position.x < -15 || f.obj.position.x > 15){
+                f.speed*=-1;
+            }
+        }
+
         this.scene.simulate();
+    }
+
+    getCameraHeight(){
+        return this.floorHeight-5;
     }
 
 
