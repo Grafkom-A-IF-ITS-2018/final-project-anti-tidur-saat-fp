@@ -31,34 +31,16 @@
     var game;
 
     function init() {
-
+        game = new Game();
         var stats = initStats();
-
-        var scene = new Physijs.Scene();
-        scene.setGravity(new THREE.Vector3(0, -22, 0));
-        var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        
-        game = new Game(scene,camera);
-        scene.add(camera);
 
         var renderer = new THREE.WebGLRenderer({
             antialias : true
         });
-        renderer.setClearColor(new THREE.Color(0xEEEEEE, 1.0));
+        // renderer.setClearColor(new THREE.Color(0xffffff, 1.0));
         renderer.setSize(window.innerWidth, window.innerHeight);
 
-        var directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
-        directionalLight.position.set(-20, 40, 60);
-        scene.add(directionalLight);
-
-        // add subtle ambient lighting
-        var ambientLight = new THREE.AmbientLight(0x292929);
-        scene.add(ambientLight);
-
-
-
         document.getElementById("WebGL-output").appendChild(renderer.domElement);
-        var step = 0;
 
         render();
  
@@ -66,7 +48,7 @@
             game.update();
             stats.update();
             requestAnimationFrame(render);
-            renderer.render(scene, camera);
+            renderer.render(game.scene, game.camera);
 
         }
 
