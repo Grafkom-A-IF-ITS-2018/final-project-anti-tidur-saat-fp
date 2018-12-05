@@ -36,15 +36,29 @@ class Game{
             new THREE.MeshBasicMaterial( {color: 0xff0000} ),0.8,1.0
         );
     
+        var listener = new THREE.AudioListener();
+        this.camera.add(listener);
+
+        var sound = new THREE.PositionalAudio( listener );
+
+        var audioLoader = new THREE.AudioLoader();
+        audioLoader.load( 'bounce.mp3', function( buffer ) {
+            sound.setBuffer( buffer );
+            sound.setRefDistance( 2 );
+        });
+
+        
         this.ball = new Physijs.SphereMesh( geometry, material );
         this.ball.translateY(4);
         this.ball.translateX(1.4);
         this.ball.setCcdMotionThreshold(1);
+        this.ball.add(sound);            
         this.ball.addEventListener('collision',function(floor){
             let x = this.getLinearVelocity().x;
             let y = this.position.y;
             this.setLinearVelocity(new THREE.Vector3(0,this.getLinearVelocity().y,0));
             floor.hopLeft-=1;
+            sound.play();
             if(floor.position.y < y){
                 this.setLinearVelocity(new THREE.Vector3(x,16,0));
             }
@@ -73,6 +87,7 @@ class Game{
         for(let i=0;i<5;i++){
             this.addNewFloor();
         }
+        console.log(this.floors[0].obj);
     }
 
     getRandomFloat(min, max) {
@@ -93,6 +108,7 @@ class Game{
             floor.translateX(this.getRandomFloat(-15,15));    
             floor.hopLeft=5;
             floor.name=floor.uuid;
+            // floor.mass=2;
             this.scene.add(floor);
             this.floors.push({obj:floor,speed:this.getRandomFloat(-10,10)/100.0});
         }
@@ -175,7 +191,7 @@ class Game{
         this.ball.__dirtyPosition=true;
         this.ball.__dirtyRotation=true;
         let bPos = this.ball.position;
-        if(bPos.y < -1){
+        if(bPos.y < -2){
             this.init();
         }
         if(this.moveLeft){
