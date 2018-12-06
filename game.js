@@ -1,23 +1,10 @@
 class Game{
 
-    constructor(scene,camera) {
-        this.init();
+    constructor(renderer) {
+        this.init(renderer);
     }
 
-    init(){
-        this.scene = new Physijs.Scene();
-        this.scene.setGravity(new THREE.Vector3(0, -22, 0));
-        this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        
-        this.scene.add(this.camera);
-
-        var directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
-        directionalLight.position.set(-20, 40, 60);
-        // scene.add(directionalLight);
-
-        // add subtle ambient lighting
-        // scene.add(ambientLight);
-
+    initFloor(){
         this.helix = new THREE.Group();
         this.gFloors = new THREE.Group();
         this.changeFloor = false;
@@ -26,48 +13,8 @@ class Game{
         this.moveRight=false;
         this.moveTop=false;
         this.moveBottom=false;
-
-        this.camera.position.x = 0;
-        this.camera.position.y = 2;
-        this.camera.position.z = 25;
         
-        var geometry = new THREE.SphereGeometry(0.5, 15, 15);
-        var material =  Physijs.createMaterial(
-            new THREE.MeshBasicMaterial( {color: 0xff0000} ),0.8,1.0
-        );
     
-        var listener = new THREE.AudioListener();
-        this.camera.add(listener);
-
-        var sound = new THREE.PositionalAudio( listener );
-
-        var audioLoader = new THREE.AudioLoader();
-        audioLoader.load( 'bounce.mp3', function( buffer ) {
-            sound.setBuffer( buffer );
-            sound.setRefDistance( 2 );
-        });
-
-        
-        this.ball = new Physijs.SphereMesh( geometry, material );
-        this.ball.translateY(4);
-        this.ball.translateX(1.4);
-        this.ball.setCcdMotionThreshold(1);
-        this.ball.add(sound);            
-        this.ball.addEventListener('collision',function(floor){
-            let x = this.getLinearVelocity().x;
-            let y = this.position.y;
-            this.setLinearVelocity(new THREE.Vector3(0,this.getLinearVelocity().y,0));
-            floor.hopLeft-=1;
-            sound.play();
-            if(floor.position.y < y){
-                this.setLinearVelocity(new THREE.Vector3(x,16,0));
-            }
-            else{
-                this.setLinearVelocity(new THREE.Vector3(x,-3,0));
-            }
-        });
-        this.scene.add(this.ball);
-
         this.floorHeight = 0;
         
         var floorGeom = new THREE.CubeGeometry(25,0.5, 0);
@@ -87,20 +34,95 @@ class Game{
         for(let i=0;i<5;i++){
             this.addNewFloor();
         }
-        console.log(this.floors[0].obj);
+    }
+    initBall(){
+        var listener = new THREE.AudioListener();
+        this.camera.add(listener);
+
+        var sound = new THREE.PositionalAudio( listener );
+
+        var audioLoader = new THREE.AudioLoader();
+        audioLoader.load( 'assets/bounce.mp3', function( buffer ) {
+            sound.setBuffer( buffer );
+            sound.setRefDistance( 2 );
+        });
+
+        var geometry = new THREE.SphereGeometry(0.5, 15, 15);
+        var material =  Physijs.createMaterial(
+            new THREE.MeshPhongMaterial( {color: 0xff0000} ),0.8,1.0
+        );
+    
+        this.ball = new Physijs.SphereMesh( geometry, material );
+        this.ball.translateY(4);
+        this.ball.translateX(1.4);
+        this.ball.setCcdMotionThreshold(1);
+        this.ball.add(sound);            
+        this.ball.addEventListener('collision',function(floor){
+            let x = this.getLinearVelocity().x;
+            let y = this.position.y;
+            this.setLinearVelocity(new THREE.Vector3(0,this.getLinearVelocity().y,0));
+            floor.hopLeft-=1;
+            sound.play();
+            if(floor.position.y < y){
+                this.setLinearVelocity(new THREE.Vector3(x,16,0));
+            }
+            else{
+                this.setLinearVelocity(new THREE.Vector3(x,-3,0));
+            }
+        });
+        this.scene.add(this.ball);
+    }
+
+    init(renderer){
+        this.scene = new Physijs.Scene();
+        this.scene.setGravity(new THREE.Vector3(0, -22, 0));
+        this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.camera.position.x = 0;
+        this.camera.position.y = 2;
+        this.camera.position.z = 25;
+
+        var light = new THREE.PointLight(0xffffff, 1, Infinity);
+        this.camera.add(light);
+
+        this.scene.add(this.camera);
+
+        this.score = 0;
+        if(this.scoreHtml == null){
+            var scoreHtml = document.createElement('div');
+            scoreHtml.style.position = 'absolute';
+            //scoreHtml.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
+            scoreHtml.style.width = 100;
+            scoreHtml.style.height = 100;
+            scoreHtml.style.color = "red";
+            scoreHtml.style.fontSize = "30px";
+            scoreHtml.innerHTML = "0";
+            scoreHtml.style.top = 10 + 'px';
+            scoreHtml.style.left = 100 + 'px';
+            document.body.appendChild(scoreHtml);
+    
+            this.scoreHtml = scoreHtml;    
+        }
+
+        this.initBall();
+        this.initFloor();
+
+        var video = document.getElementById('video');
+        var texture = new THREE.VideoTexture(video);
+        texture.minFilter = THREE.NearestFilter;
+        this.scene.background = texture;
+
     }
 
     getRandomFloat(min, max) {
         return Math.floor(Math.random() * (max - min)) + min;
     }
 
-    //private
     addNewFloor(){
         //Physijs.CylinderMesh(geometry,material,gravity)
         for(let i=0;i<2;i++){
             var floorGeom = new THREE.CubeGeometry(2.5,0.5, 0);
             var floorMaterial = Physijs.createMaterial(
-                new THREE.MeshBasicMaterial({color: 0xff0000}),
+                new THREE.MeshPhongMaterial({color: 0xff0000}),
                 0,2
             );
             var floor = new Physijs.BoxMesh(floorGeom,floorMaterial,0);
@@ -173,12 +195,17 @@ class Game{
         }
     }
 
+    updateScore(){
+        this.score = Math.max(this.score, this.ball.position.y);
+        this.scoreHtml.innerHTML = Math.floor(this.score);
+    }
+
     update(){
         if(this.getCameraHeight()+15 > this.floorHeight){
             this.addNewFloor();
         }
         this.updateFloor();
-
+    
         this.ball.position.z=0;
         this.ball.rotation.x=0;
         this.ball.rotation.y=0;
@@ -200,10 +227,11 @@ class Game{
         else if(this.moveRight){
             this.ball.position.x+=0.12;
         }
+
         this.camera.position.set(0,this.getCameraHeight(),25);
         this.camera.lookAt(bPos);    
         this.scene.simulate();
-
+        this.updateScore();
     }
 
     getCameraHeight(){
