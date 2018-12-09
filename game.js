@@ -8,7 +8,7 @@ class Game{
         this.scene = new Physijs.Scene();
         this.scene.setGravity(new THREE.Vector3(0, -22, 0));
         this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        
+        this.score = 0;
         this.scene.add(this.camera);
 
         var directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
@@ -56,11 +56,11 @@ class Game{
         this.ball.addEventListener('collision',function(floor){
             let x = this.getLinearVelocity().x;
             let y = this.position.y;
-            this.setLinearVelocity(new THREE.Vector3(0,this.getLinearVelocity().y,0));
-            floor.hopLeft-=1;
+            this.setLinearVelocity(new THREE.Vector3(0,this.getLinearVelocity().y,0));            
             sound.play();
             if(floor.position.y < y){
                 this.setLinearVelocity(new THREE.Vector3(x,16,0));
+                floor.hopLeft-=1;
             }
             else{
                 this.setLinearVelocity(new THREE.Vector3(x,-3,0));
@@ -88,6 +88,27 @@ class Game{
             this.addNewFloor();
         }
         console.log(this.floors[0].obj);
+        
+        var loader = new THREE.FontLoader();
+
+        loader.load( 'fonts/helvetiker_regular.typeface.json', function ( font ) {
+
+            var geometry = new THREE.TextGeometry( 'Hello three.js!', {
+                font: font,
+                size: 80,
+                height: 5,
+                curveSegments: 12,
+                bevelEnabled: true,
+                bevelThickness: 10,
+                bevelSize: 8,
+                bevelSegments: 5
+            });
+            geometry.x = 0;
+            geometry.y = 10;
+            geometry.z = 30;
+            
+            this.scene.add(geometry);
+        } );        
     }
 
     getRandomFloat(min, max) {
@@ -210,6 +231,11 @@ class Game{
         return this.ball.position.y;
     }
 
-
+    getScore(){
+        let temp = this.getCameraHeight();
+        if(temp > this.score)
+            this.score = temp;
+        return this.score;
+    }
 
 }

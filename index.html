@@ -15,24 +15,27 @@
             margin: 0;
             overflow: hidden;
         }
+          
     </style>
 </head>
 <body>
-
-<div id="Stats-output">
-</div>
 <div id="WebGL-output">
+</div>
+<div>
+    <span id="Stats-output"></span>
+    <span id="score"></span>
 </div>
 
 <script type="text/javascript">
     Physijs.scripts.worker = 'libs/physijs_worker.js';
 	Physijs.scripts.ammo = 'ammo.js';
 	
-    var game;
+    var game;    
 
     function init() {
         game = new Game();
         var stats = initStats();
+        var display_score = initScore();
 
         var renderer = new THREE.WebGLRenderer({
             antialias : true
@@ -45,11 +48,11 @@
         render();
  
         function render() {
+            display_score.innerHTML = "Score : " + game.getScore(); 
             game.update();
-            stats.update();
-            requestAnimationFrame(render);
-            renderer.render(game.scene, game.camera);
-
+            stats.update();                        
+            requestAnimationFrame(render);                        
+            renderer.render(game.scene, game.camera);                       
         }
 
 
@@ -66,6 +69,17 @@
             document.getElementById("Stats-output").appendChild(stats.domElement);
 
             return stats;
+        }        
+
+        function initScore(){
+            var div_score = document.getElementById("score");
+            div_score.style.position = 'absolute';
+            div_score.style.right = '0px';
+            div_score.style.top = '0px';
+            div_score.style.color = 'white';
+            div_score.style.fontSize = '30px';
+            div_score.style.zIndex = '2';
+            return div_score;
         }
     }// close init
 
@@ -73,6 +87,8 @@
 
     document.addEventListener("keydown", onDocumentKeyDown, false);
     document.addEventListener("keyup", onDocumentKeyUp, false);
+    window.addEventListener( "resize", onWindowResize, false );
+
     function onDocumentKeyDown(event) {
         var keyCode = event.which;
         if (keyCode == 65) {//A
@@ -92,7 +108,12 @@
         }
     };
 
-
+    function onWindowResize() {
+        windowHalfX = window.innerWidth / 2;
+        game.camera.aspect = window.innerWidth / window.innerHeight;
+        game.camera.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+    }
 
 </script>
 </body>
