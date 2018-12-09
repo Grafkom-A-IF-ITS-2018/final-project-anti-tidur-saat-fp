@@ -8,7 +8,7 @@
     <script type="text/javascript" src="libs/stats.min.js"></script>
     <script type="text/javascript" src="libs/dat.gui.min.js"></script>
     <script type="text/javascript" src="libs/physi.js"></script>
-    
+
     <script type="text/javascript" src="game.js"></script>
     <style>
         body {
@@ -19,12 +19,17 @@
     </style>
 </head>
 <body>
-<div id="WebGL-output">
-</div>
 <div>
     <span id="Stats-output"></span>
     <span id="score"></span>
 </div>
+<div id="WebGL-output">
+</div>
+<video id="video"
+    style="display: none;
+    position: absolute; left: 15px; top: 75px;"
+    src="assets/sky.mp4"
+    controls="true" autoplay="true">
 
 <script type="text/javascript">
     Physijs.scripts.worker = 'libs/physijs_worker.js';
@@ -33,7 +38,6 @@
     var game;    
 
     function init() {
-        game = new Game();
         var stats = initStats();
         var display_score = initScore();
 
@@ -42,6 +46,7 @@
         });
         // renderer.setClearColor(new THREE.Color(0xffffff, 1.0));
         renderer.setSize(window.innerWidth, window.innerHeight);
+        game = new Game(renderer);
 
         document.getElementById("WebGL-output").appendChild(renderer.domElement);
 
