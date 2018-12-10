@@ -9,28 +9,34 @@ class Game{
         this.gFloors = new THREE.Group();
         this.changeFloor = false;
         this.floors = [];
+        this.floorsTextures = [];
         this.moveLeft=false;
         this.moveRight=false;
         this.moveTop=false;
         this.moveBottom=false;
         this.score = 0;
-    
-        this.floorHeight = 0;
-        
+
+        this.floorHeight = 0;        
+
         var floorGeom = new THREE.CubeGeometry(25,0.5, 0);
         var floorMaterial = Physijs.createMaterial(
             new THREE.MeshBasicMaterial({color: 0xff0000}),
             0.8,2.0
         );
+
         //Physijs.CylinderMesh(geometry,material,gravity)
         var floor = new Physijs.BoxMesh(floorGeom,floorMaterial,0);
         floor.translateY(-2);
         floor.name=floor.uuid;
-        floor.hopLeft=4;
+        floor.hopLeft=4;                        
+        
+        //console.log(floor.position)
+        // floor.mass=2;
+        // floor.obj.position.z = floor.position.z -1 ;
         this.scene.add(floor);
         this.floors.push({obj:floor,speed:0});
-        this.floorHeight+=2;
-
+        this.floorsTextures.push({obj:floor});
+        this.floorHeight+=2;                
         for(let i=0;i<5;i++){
             this.addNewFloor();
         }
@@ -74,14 +80,32 @@ class Game{
     }
 
     init(renderer){
+        this.floorTexture;
+        let GameContext = this;        
+        var mtlLoader = new THREE.MTLLoader();                        
+        mtlLoader.load("assets/block.mtl", function(materials){            
+            materials.preload()            
+            var objLoader = new THREE.OBJLoader()
+            objLoader.setMaterials(materials)
+
+            objLoader.load("assets/block.obj", function(mesh){                                       
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                GameContext.floorTexture = mesh;  
+                console.log("Done");
+            })
+        }) 
+        //  while(isLoading);        
         this.scene = new Physijs.Scene();
         this.scene.setGravity(new THREE.Vector3(0, -22, 0));
         this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.camera.position.x = 0;
         this.camera.position.y = 2;
         this.camera.position.z = 25;
-
-        var light = new THREE.PointLight(0xffffff, 1, Infinity);
+        
+        var ambientLight = new THREE.AmbientLight(0xffffff,0.7);
+        this.scene.add(ambientLight);
+        var light = new THREE.PointLight(0xffffff, 0.5, Infinity);
         this.camera.add(light);
 
         this.scene.add(this.camera);
@@ -118,23 +142,54 @@ class Game{
     }
 
     addNewFloor(){
-        //Physijs.CylinderMesh(geometry,material,gravity)
-        for(let i=0;i<2;i++){
+        //Physijs.CylinderMesh(geometry,material,gravity)                
+
+        //console.log(this.floorTexture[0]);
+        //let tempFloorTexture = this.fl
+        for(let i=0;i<2;i++){            
             var floorGeom = new THREE.CubeGeometry(2.5,0.5, 0);
             var floorMaterial = Physijs.createMaterial(
                 new THREE.MeshPhongMaterial({color: 0xff0000}),
                 0,2
-            );
+            );        
+            
             var floor = new Physijs.BoxMesh(floorGeom,floorMaterial,0);
             floor.translateY(this.floorHeight);
             floor.translateX(this.getRandomFloat(-15,15));    
             floor.hopLeft=5;
             floor.name=floor.uuid;
-            // floor.mass=2;
-            this.scene.add(floor);
-            this.floors.push({obj:floor,speed:this.getRandomFloat(-10,10)/100.0});
+                            
+            let fTexture;            
+            if (this.floorTexture == undefined){
+                let GameContext = this;
+                let x = floor.position.x;
+                let y = floor.position.y;
+                let z = floor.position.z + 1;
+                var mtlLoader = new THREE.MTLLoader();                        
+                mtlLoader.load("assets/block.mtl", function(materials){            
+                    materials.preload()            
+                    var objLoader = new THREE.OBJLoader()
+                    objLoader.setMaterials(materials)
+
+                    objLoader.load("assets/block.obj", function(mesh){                                       
+                        mesh.castShadow = true;
+                        mesh.receiveShadow = true;
+                        fTexture = mesh;
+                        GameContext.scene.add(mesh);                        
+                    })
+                })
+            } else {
+                fTexture = this.floorTexture.clone();
+                fTexture.position.set(floor.position.x,floor.position.y,floor.position.z + 1);
+                this.scene.add(fTexture);
+            }
+            
+
+            this.scene.add(floor);            
+            let tempSpeed = this.getRandomFloat(-10,10)/100.0;
+            this.floors.push({obj:floor,texture: fTexture,speed:tempSpeed});                                       
         }
-        this.floorHeight+=4;
+        this.floorHeight+=4;    
         
     }
 
@@ -176,17 +231,23 @@ class Game{
     }
 
     updateFloor(){
-        for(let i=0;i<this.floors.length;i++){
+        
+        for(let i=1;i<this.floors.length;i++){            
             let f = this.floors[i];
+            let t = this.floorsTextures[i];                        
             f.obj.__dirtyPosition=true;
             f.obj.translateX(f.speed);
+            if (typeof f.texture != 'undefined')f.texture.translateX(f.speed);
+            // f.view.position.set(f.position.x, f.position.y, f.position.z + 1);
             if(f.obj.position.x < -15 || f.obj.position.x > 15){
                 f.speed*=-1;
             }
             if(f.obj.hopLeft <= 0){
                 //remove object from scene and array list
                 let obj = this.scene.getObjectByName(f.obj.name);
-                this.scene.remove(obj);
+                //console.log(obj);                
+                this.scene.remove(f.obj);
+                this.scene.remove(f.texture);
                 this.floors.splice(i,1);
             }
             else{
@@ -242,7 +303,7 @@ class Game{
         let temp = this.getCameraHeight();
         if(temp > this.score)
             this.score = temp;
-        return this.score;
+        return Math.floor(this.score);
     }
 
 }
