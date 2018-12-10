@@ -15,13 +15,11 @@
             margin: 0;
             overflow: hidden;
         }
-          
     </style>
 </head>
 <body>
 <div>
     <span id="Stats-output"></span>
-    <span id="score"></span>
 </div>
 <div id="WebGL-output">
 </div>
@@ -31,6 +29,13 @@
     src="assets/sky.mp4"
     controls="true" autoplay="true">
 
+<video id="flame"
+    style="display: none;
+    position: absolute; left: 15px; top: 75px;"
+    src="assets/flame.mp4"
+    controls="true" autoplay="true">
+
+
 <script type="text/javascript">
     Physijs.scripts.worker = 'libs/physijs_worker.js';
 	Physijs.scripts.ammo = 'ammo.js';
@@ -39,21 +44,19 @@
 
     function init() {
         var stats = initStats();
-        var display_score = initScore();
 
         var renderer = new THREE.WebGLRenderer({
             antialias : true
         });
         // renderer.setClearColor(new THREE.Color(0xffffff, 1.0));
         renderer.setSize(window.innerWidth, window.innerHeight);
-        game = new Game(renderer);
+        game = new Game();
 
         document.getElementById("WebGL-output").appendChild(renderer.domElement);
 
         render();
  
         function render() {
-            display_score.innerHTML = "Score : " + game.getScore(); 
             game.update();
             stats.update();                        
             requestAnimationFrame(render);                        
@@ -75,17 +78,6 @@
 
             return stats;
         }        
-
-        function initScore(){
-            var div_score = document.getElementById("score");
-            div_score.style.position = 'absolute';
-            div_score.style.right = '0px';
-            div_score.style.top = '0px';
-            div_score.style.color = 'white';
-            div_score.style.fontSize = '30px';
-            div_score.style.zIndex = '2';
-            return div_score;
-        }
     }// close init
 
     window.onload = init
