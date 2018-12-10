@@ -126,6 +126,7 @@ class Game{
     }
 
     init(){
+        this.end = false;
         this.floorTexture;
         let GameContext = this;        
         var mtlLoader = new THREE.MTLLoader();                        
@@ -172,12 +173,37 @@ class Game{
 
         this.initBall();
         this.initFloor();
+        this.showGameOver();
 
         var video = document.getElementById('video');
         var texture = new THREE.VideoTexture(video);
         texture.minFilter = THREE.NearestFilter;
-        this.scene.background = texture;
+        this.scene.background = texture;    
         
+    }
+
+    showGameOver()
+    {
+        let GameContext = this;
+        var loader = new THREE.FontLoader();
+        loader.load( 'assets/font.typeface.json', function ( font ) {
+            var geometry = new THREE.TextGeometry( 'Alfian', {
+                font: font,
+                size: 1,
+                height: 1,
+                curveSegments: 12,
+                bevelEnabled: true,
+                bevelThickness: 2,
+                bevelSize: 5
+                } );
+            var material = new THREE.MeshPhongMaterial({color : 0x0000ff});
+            var mesh = new THREE.Mesh(geometry,material);
+            mesh.position.set(GameContext.ball.position.x,GameContext.ball.position.y,GameContext.ball.position.z);
+            // console.log(GameContext.floors[0].obj.position);
+            // console.log(mesh.position);
+            // console.log(GameContext.ball.position);  
+            GameContext.scene.add(mesh);
+        } );
     }
 
     getRandomFloat(min, max) {
@@ -333,7 +359,7 @@ class Game{
         let bPos = this.ball.position;
         if(this.spikes){
             if(bPos.y < this.spikes.position.y){
-                this.init();
+                this.end = true;
             }
             this.spikes.position.y=this.score-10
         }
@@ -356,6 +382,9 @@ class Game{
 
     getCamera(){
         return this.camera;
+    }
+    isEnd(){
+        return this.end;
     }
 
     getCameraHeight(){
