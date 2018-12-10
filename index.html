@@ -53,16 +53,17 @@
         // renderer.setClearColor(new THREE.Color(0xffffff, 1.0));
         renderer.setSize(window.innerWidth, window.innerHeight);
         game = new Game();
-
         document.getElementById("WebGL-output").appendChild(renderer.domElement);
 
         render();
- 
         function render() {
-            game.update();
-            stats.update();                        
-            requestAnimationFrame(render);                        
-            renderer.render(game.scene, game.camera);                       
+            if(!game.isEnd())
+            {
+                game.update();
+                stats.update();                        
+                requestAnimationFrame(render);                        
+                renderer.render(game.scene, game.camera);                       
+            }
         }
 
         function initStats() {
