@@ -52,7 +52,7 @@
         });
         // renderer.setClearColor(new THREE.Color(0xffffff, 1.0));
         renderer.setSize(window.innerWidth, window.innerHeight);
-        game = new Game();
+        game = new Game();        
 
         document.getElementById("WebGL-output").appendChild(renderer.domElement);
 
@@ -61,8 +61,8 @@
         function render() {
             game.update();
             stats.update();                        
-            requestAnimationFrame(render);                        
-            renderer.render(game.scene, game.camera);                       
+            requestAnimationFrame(render);            
+            renderer.render(game.scene, game.camera);            
         }
 
         function initStats() {
