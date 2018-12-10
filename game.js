@@ -148,27 +148,6 @@ class Game{
         var light = new THREE.PointLight(0xffffff, 0.5, Infinity);
         this.camera.add(light);
 
-
-        var loader = new THREE.FontLoader();
-
-        loader.load( 'assets/font.typeface.json', function ( font ) {
-            var geometry = new THREE.TextGeometry( 'Hello', {
-                font: font,
-                size: 100,
-                height: 50,
-                curveSegments: 12,
-                bevelEnabled: true,
-                bevelThickness: 10,
-                bevelSize: 8,
-                bevelSegments: 5
-                } );
-            var material = new THREE.MeshNormalMaterial({color : 0x000000});
-            var mesh = new THREE.Mesh(geometry,material);
-            console.log(mesh.position);
-            GameContext.scene.add(mesh);
-        } );
-
-
         this.scene.add(this.camera);
         this.initSpike()
         this.score = 0;
@@ -189,21 +168,41 @@ class Game{
 
         this.initBall();
         this.initFloor();
+        this.showGameOver();
 
         var video = document.getElementById('video');
         var texture = new THREE.VideoTexture(video);
         texture.minFilter = THREE.NearestFilter;
-        this.scene.background = texture;
+        this.scene.background = texture;    
         
-    }
-
-    getRandomFloat(min, max) {
-        return Math.floor(Math.random() * (max - min)) + min;
     }
 
     showGameOver()
     {
+        let GameContext = this;
+        var loader = new THREE.FontLoader();
+        loader.load( 'assets/font.typeface.json', function ( font ) {
+            var geometry = new THREE.TextGeometry( 'Alfian', {
+                font: font,
+                size: 1,
+                height: 1,
+                curveSegments: 12,
+                bevelEnabled: true,
+                bevelThickness: 2,
+                bevelSize: 5
+                } );
+            var material = new THREE.MeshPhongMaterial({color : 0x0000ff});
+            var mesh = new THREE.Mesh(geometry,material);
+            mesh.position.set(GameContext.ball.position.x,GameContext.ball.position.y,GameContext.ball.position.z);
+            // console.log(GameContext.floors[0].obj.position);
+            // console.log(mesh.position);
+            // console.log(GameContext.ball.position);  
+            GameContext.scene.add(mesh);
+        } );
+    }
 
+    getRandomFloat(min, max) {
+        return Math.floor(Math.random() * (max - min)) + min;
     }
 
     addNewFloor(){
