@@ -57,7 +57,7 @@
 
         render();
         function render() {
-            if(!game.isEnd())
+            if(true)
             {
                 game.update();
                 stats.update();                        
@@ -89,7 +89,8 @@
     window.addEventListener( "resize", onWindowResize, false );
 
     function onDocumentKeyDown(event) {
-        var keyCode = event.which;
+        var keyCode = event.which;         
+        if (game.onMenu != undefined && game.onMenu) game.fromMenuToPlay();
         if (keyCode == 65) {//A
             game.moveBallToLeft();
         }

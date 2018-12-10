@@ -30,14 +30,14 @@ class Game{
         floor.name=floor.uuid;
         floor.hopLeft=4;
 
-        if (this.floorTexture != undefined){            
-            let fTexture = this.floorTexture.clone();
-            fTexture.position.set(floor.position.x,floor.position.y,floor.position.z + 1);
-            fTexture.position.x -= 1.3;
-            fTexture.position.y -= 0.7;
-            fTexture.scale.set(25,1,1.5);
-            this.scene.add(fTexture);
-        }        
+        // if (this.floorTexture != undefined){            
+        //     let fTexture = this.floorTexture.clone();
+        //     fTexture.position.set(floor.position.x,floor.position.y,floor.position.z + 1);
+        //     fTexture.position.x -= 1.3;
+        //     fTexture.position.y -= 0.7;
+        //     fTexture.scale.set(25,1,1.5);
+        //     this.scene.add(fTexture);
+        // }        
                         
         this.scene.add(floor);
         this.floors.push({obj:floor,speed:0});
@@ -120,40 +120,68 @@ class Game{
 
                 context.spikes = new THREE.Mesh(groupGeometry,material)
                 context.spikes.position.y= -100
-                scene.add(context.spikes)
+                scene.add(context.spikes);
             }
         );
     }
 
-    init(){
-        this.end = false;
-        this.floorTexture;
+    showMenu(){
+        this.onMenu = true;
         let GameContext = this;        
-        var mtlLoader = new THREE.MTLLoader();                        
-        mtlLoader.load("assets/block.mtl", function(materials){            
-            materials.preload()            
-            var objLoader = new THREE.OBJLoader()
-            objLoader.setMaterials(materials)
+        var loader = new THREE.FontLoader();
+        loader.load( 'assets/helvetiker_regular.typeface.json', function ( font ) {
+            var textGeo = new THREE.TextGeometry( "Jump Jump", {
 
-            objLoader.load("assets/block.obj", function(mesh){                                       
-                mesh.castShadow = true;
-                mesh.receiveShadow = true;
-                GameContext.floorTexture = mesh;                  
-            })
-        })         
-        this.scene = new Physijs.Scene();
-        this.scene.setGravity(new THREE.Vector3(0, -22, 0));
-        this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        this.camera.position.x = 0;
-        this.camera.position.y = 2;
-        this.camera.position.z = 25;
-        
-        var ambientLight = new THREE.AmbientLight(0xffffff,0.7);
-        this.scene.add(ambientLight);
-        var light = new THREE.PointLight(0xffffff, 0.5, Infinity);
-        this.camera.add(light);
+                font: font,
 
-        this.scene.add(this.camera);
+                size: 2,
+                height: 1,
+                curveSegments:12,
+
+                bevelThickness: 0.5,
+                bevelSize: 0.1,
+                bevelEnabled: true,
+                //color: 0xFFFFFF
+
+            } );
+
+            var textMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
+
+            var mesh = new THREE.Mesh( textGeo, textMaterial );                                
+            mesh.position.set(0,0,-20);            
+            GameContext.scene.add(mesh);    
+            GameContext.TextMenu1 = mesh;
+
+            // Text 2
+            textGeo = new THREE.TextGeometry( "Press A or D to play", {
+
+                font: font,
+
+                size: 2,
+                height: 1,
+                curveSegments:12,
+
+                bevelThickness: 0.5,
+                bevelSize: 0.1,
+                bevelEnabled: true,
+                //color: 0xFFFFFF
+
+            } );
+
+            textMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
+
+            GameContext.TextMenu2 = new THREE.Mesh( textGeo, textMaterial );    
+            mesh.position.set(0,-10,-20);
+            GameContext.scene.add(GameContext.TextMenu2);
+        } );
+    }
+
+    fromMenuToPlay(){
+        console.log("Play");
+        this.scene.remove(this.TextMenu1);
+        this.scene.remove(this.TextMenu2);
+        this.onMenu = false;
+
         this.initSpike()
         this.score = 0;
         if(this.scoreHtml == null){
@@ -173,37 +201,80 @@ class Game{
 
         this.initBall();
         this.initFloor();
-        this.showGameOver();
-
-        var video = document.getElementById('video');
-        var texture = new THREE.VideoTexture(video);
-        texture.minFilter = THREE.NearestFilter;
-        this.scene.background = texture;    
-        
+        //this.showGameOver();                
     }
 
     showGameOver()
     {
         let GameContext = this;
         var loader = new THREE.FontLoader();
-        loader.load( 'assets/font.typeface.json', function ( font ) {
-            var geometry = new THREE.TextGeometry( 'Alfian', {
+        loader.load( 'assets/helvetiker_regular.typeface.json', function ( font ) {
+            var textGeo = new THREE.TextGeometry( "|\n|\n|", {
+
                 font: font,
-                size: 1,
+
+                size: 2,
                 height: 1,
-                curveSegments: 12,
+                curveSegments:12,
+
+                bevelThickness: 0.5,
+                bevelSize: 0.1,
                 bevelEnabled: true,
-                bevelThickness: 2,
-                bevelSize: 5
-                } );
-            var material = new THREE.MeshPhongMaterial({color : 0x0000ff});
-            var mesh = new THREE.Mesh(geometry,material);
-            mesh.position.set(GameContext.ball.position.x,GameContext.ball.position.y,GameContext.ball.position.z);
-            // console.log(GameContext.floors[0].obj.position);
-            // console.log(mesh.position);
-            // console.log(GameContext.ball.position);  
+                //color: 0xFFFFFF
+
+            } );
+
+            var textMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
+
+            var mesh = new THREE.Mesh( textGeo, textMaterial );                                            
+            mesh.position.set(0,0,-20);            
             GameContext.scene.add(mesh);
+            
+            console.log(GameContext.camera.position)
         } );
+    }
+
+
+    init(){
+        this.onMenu = true;
+        this.end = false;
+        this.floorTexture;
+
+        if (this.floorTexture == undefined){
+            console.log("Texture belum di load")
+            let GameContext = this;        
+            var mtlLoader = new THREE.MTLLoader();                        
+            mtlLoader.load("assets/block.mtl", function(materials){            
+                materials.preload()            
+                var objLoader = new THREE.OBJLoader()
+                objLoader.setMaterials(materials)
+
+                objLoader.load("assets/block.obj", function(mesh){                                       
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                    GameContext.floorTexture = mesh;                  
+                })
+            })         
+        }        
+        this.scene = new Physijs.Scene();
+        this.scene.setGravity(new THREE.Vector3(0, -22, 0));
+        this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.camera.position.x = 0;
+        this.camera.position.y = 2;
+        this.camera.position.z = 25;
+        
+        var ambientLight = new THREE.AmbientLight(0xffffff,0.7);
+        this.scene.add(ambientLight);
+        var light = new THREE.PointLight(0xffffff, 0.5, Infinity);
+        this.camera.add(light);
+
+        this.scene.add(this.camera);
+        var video = document.getElementById('video');
+        var texture = new THREE.VideoTexture(video);
+        texture.minFilter = THREE.NearestFilter;
+        this.scene.background = texture;    
+        
+        this.showMenu();        
     }
 
     getRandomFloat(min, max) {
@@ -360,6 +431,7 @@ class Game{
         if(this.spikes){
             if(bPos.y < this.spikes.position.y){
                 this.end = true;
+                this.init();
             }
             this.spikes.position.y=this.score-10
         }
