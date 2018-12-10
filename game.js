@@ -180,6 +180,26 @@ class Game{
         this.scene.remove(this.TextMenu1);
         this.scene.remove(this.TextMenu2);
         this.onMenu = false;
+
+        this.initSpike()
+        this.score = 0;
+        if(this.scoreHtml == null){
+            var scoreHtml = document.createElement('div');
+            scoreHtml.style.position = 'absolute';
+            scoreHtml.style.width = 100;
+            scoreHtml.style.height = 100;
+            scoreHtml.style.color = "red";
+            scoreHtml.style.fontSize = "30px";
+            scoreHtml.innerHTML = "0";
+            scoreHtml.style.top = 10 + 'px';
+            scoreHtml.style.left = 100 + 'px';
+            document.body.appendChild(scoreHtml);
+    
+            this.scoreHtml = scoreHtml;    
+        }
+
+        this.initBall();
+        this.initFloor();
     }
     init(){
         this.end = false;
@@ -208,28 +228,7 @@ class Game{
         var ambientLight = new THREE.AmbientLight(0xffffff,0.7);
         this.scene.add(ambientLight);
         var light = new THREE.PointLight(0xffffff, 0.5, Infinity);
-        this.camera.add(light);
-
-        this.initSpike()
-        this.score = 0;
-        if(this.scoreHtml == null){
-            var scoreHtml = document.createElement('div');
-            scoreHtml.style.position = 'absolute';
-            scoreHtml.style.width = 100;
-            scoreHtml.style.height = 100;
-            scoreHtml.style.color = "red";
-            scoreHtml.style.fontSize = "30px";
-            scoreHtml.innerHTML = "0";
-            scoreHtml.style.top = 10 + 'px';
-            scoreHtml.style.left = 100 + 'px';
-            document.body.appendChild(scoreHtml);
-    
-            this.scoreHtml = scoreHtml;    
-        }
-
-        this.initBall();
-        this.initFloor();
-        //this.showGameOver();                
+        this.camera.add(light);                
     }
 
     showGameOver()
@@ -347,21 +346,15 @@ class Game{
                 })
             } else {
                 fTexture = this.floorTexture.clone();
-            }
-            
-
-            // this.scene.add(floor);
-            // this.scene.add(fTexture);
-            //     fTexture.position.set(floor.position.x,floor.position.y,floor.position.z + 1);
-            //     fTexture.position.x -= 1.3;
-            //     fTexture.position.y -= 0.7;
-            //     fTexture.scale.set(2.6,1,1.5);
-            //     this.scene.add(fTexture);
-            // }
-            
-
+                this.scene.add(fTexture);
+                fTexture.position.set(floor.position.x,floor.position.y,floor.position.z + 1);
+                fTexture.position.x -= 1.3;
+                fTexture.position.y -= 0.7;
+                fTexture.scale.set(2.6,1,1.5);
+                this.scene.add(fTexture);                
+            }            
             this.scene.add(floor);            
-           let tempSpeed = this.getRandomFloat(-10,10)/100.0;
+            let tempSpeed = this.getRandomFloat(-10,10)/100.0;
             this.floors.push({obj:floor,texture: fTexture,speed:tempSpeed});                                       
         }
         this.floorHeight+=4;    
