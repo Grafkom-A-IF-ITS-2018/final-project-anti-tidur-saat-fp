@@ -93,7 +93,7 @@ class Game{
         
         var loader = new THREE.TextureLoader();
         var scene = this.scene;
-        var context = this
+        var context = this;
         loader.load(
             'assets/red-hot-metal.jpg',
             function ( texture ) {
@@ -124,6 +124,7 @@ class Game{
             }
         );
     }
+
     showMenu(){
         this.onMenu = true;
         let GameContext = this;        
@@ -133,22 +134,21 @@ class Game{
 
                 font: font,
 
-                size: 2,
+                size: 10,
                 height: 1,
                 curveSegments:12,
 
                 bevelThickness: 0.5,
                 bevelSize: 0.1,
-                bevelEnabled: true,
-                //color: 0xFFFFFF
-
+                bevelEnabled: true
             } );
 
-            var textMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
+            var textMaterial = new THREE.MeshBasicMaterial( { color: 0x000000 } );
 
             var mesh = new THREE.Mesh( textGeo, textMaterial );                                
-            mesh.position.set(0,0,-20);            
-            GameContext.scene.add(mesh);    
+            mesh.position.set(-35,0,-100);            
+            GameContext.scene.add(GameContext.camera);
+            GameContext.camera.add(mesh);    
             GameContext.TextMenu1 = mesh;
 
             // Text 2
@@ -167,18 +167,20 @@ class Game{
 
             } );
 
-            textMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
+            textMaterial = new THREE.MeshBasicMaterial( { color: 0x6a6a6a } );
 
-            GameContext.TextMenu2 = new THREE.Mesh( textGeo, textMaterial );    
-            mesh.position.set(0,-10,-20);
-            GameContext.scene.add(GameContext.TextMenu2);
+            var mesh2 = new THREE.Mesh( textGeo, textMaterial );                                
+            mesh2.position.set(-15,-35,-100);            
+            GameContext.scene.add(GameContext.camera);
+            GameContext.camera.add(mesh2);    
+            GameContext.TextMenu2 = mesh2;
         } );
     }
 
     fromMenuToPlay(){
         console.log("Play");
-        this.scene.remove(this.TextMenu1);
-        this.scene.remove(this.TextMenu2);
+        this.camera.remove(this.TextMenu1);
+        this.camera.remove(this.TextMenu2);
         this.onMenu = false;
 
         this.initSpike()
@@ -201,46 +203,26 @@ class Game{
         this.initBall();
         this.initFloor();
     }
-    init(){
-        this.end = false;
-        this.floorTexture;
-        let GameContext = this;        
-        var mtlLoader = new THREE.MTLLoader();                        
-        mtlLoader.load("assets/block.mtl", function(materials){            
-            materials.preload()            
-            var objLoader = new THREE.OBJLoader()
-            objLoader.setMaterials(materials)
-
-            objLoader.load("assets/block.obj", function(mesh){                                       
-                mesh.castShadow = true;
-                mesh.receiveShadow = true;
-                GameContext.floorTexture = mesh;  
-                console.log("Done");
-            })
-        }) 
-        this.scene = new Physijs.Scene();
-        this.scene.setGravity(new THREE.Vector3(0, -22, 0));
-        this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        this.camera.position.x = 0;
-        this.camera.position.y = 2;
-        this.camera.position.z = 25;
-        
-        var ambientLight = new THREE.AmbientLight(0xffffff,0.7);
-        this.scene.add(ambientLight);
-        var light = new THREE.PointLight(0xffffff, 0.5, Infinity);
-        this.camera.add(light);                
-    }
 
     showGameOver()
     {
+        for(let i=0;i<this.floors.length;i++){            
+            let f = this.floors[i].obj;
+            let t = this.floors[i].texture;
+            this.scene.remove(f);
+            if(t!=undefined)this.scene.remove(t);        
+        }
+        this.scene.remove(this.ball);
+        this.scene.remove(this.spikes);
         let GameContext = this;
+        
         var loader = new THREE.FontLoader();
         loader.load( 'assets/helvetiker_regular.typeface.json', function ( font ) {
-            var textGeo = new THREE.TextGeometry( "|\n|\n|", {
+            var textGeo = new THREE.TextGeometry( "Game Over", {
 
                 font: font,
 
-                size: 2,
+                size: 8,
                 height: 1,
                 curveSegments:12,
 
@@ -248,25 +230,20 @@ class Game{
                 bevelSize: 0.1,
                 bevelEnabled: true,
                 //color: 0xFFFFFF
-
             } );
 
-            var textMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
-
-            var mesh = new THREE.Mesh( textGeo, textMaterial );                                            
-            mesh.position.set(0,0,-20);            
-            GameContext.scene.add(mesh);
-            
-            console.log(GameContext.camera.position)
-        } );
+        var textMaterial = new THREE.MeshBasicMaterial( { color: 0x696969 } );
+        var mesh = new THREE.Mesh( textGeo, textMaterial );                                
+        GameContext.over = mesh;
+        GameContext.over.position.set(-25,0,-100);  
+        GameContext.scene.add(GameContext.camera);          
+        GameContext.camera.add(GameContext.over);
+        });
     }
 
 
     init(){
-        this.onMenu = true;
-        this.end = false;
         this.floorTexture;
-
         if (this.floorTexture == undefined){
             console.log("Texture belum di load")
             let GameContext = this;        
@@ -399,7 +376,6 @@ class Game{
     }
 
     updateFloor(){
-        
         for(let i=1;i<this.floors.length;i++){            
             let f = this.floors[i];
             if(f.obj.position.y < this.spikes.position.y){
@@ -456,8 +432,7 @@ class Game{
         let bPos = this.ball.position;
         if(this.spikes){
             if(bPos.y < this.spikes.position.y){
-                this.end = true;
-                this.init();
+                this.showGameOver();
             }
             this.spikes.position.y=this.score-10
         }
@@ -480,9 +455,6 @@ class Game{
 
     getCamera(){
         return this.camera;
-    }
-    isEnd(){
-        return this.end;
     }
 
     getCameraHeight(){
