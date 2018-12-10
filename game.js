@@ -1,7 +1,7 @@
 class Game{
 
-    constructor(renderer) {
-        this.init(renderer);
+    constructor() {
+        this.init();
     }
 
     initFloor(){
@@ -21,7 +21,7 @@ class Game{
         var floorGeom = new THREE.CubeGeometry(25,0.5, 0);
         var floorMaterial = Physijs.createMaterial(
             new THREE.MeshBasicMaterial({color: 0xff0000}),
-            0.8,2.0
+            0,0
         );
 
         //Physijs.CylinderMesh(geometry,material,gravity)
@@ -62,24 +62,69 @@ class Game{
         this.ball.translateY(4);
         this.ball.translateX(1.4);
         this.ball.setCcdMotionThreshold(1);
-        this.ball.add(sound);            
+        this.ball.add(sound);
         this.ball.addEventListener('collision',function(floor){
             let x = this.getLinearVelocity().x;
             let y = this.position.y;
-            this.setLinearVelocity(new THREE.Vector3(0,this.getLinearVelocity().y,0));            
+            this.setLinearVelocity(new THREE.Vector3(0,this.getLinearVelocity().y,0));
+            if(sound.isPlaying){sound.stop();}
             sound.play();
             if(floor.position.y < y){
-                this.setLinearVelocity(new THREE.Vector3(x,16,0));
-                floor.hopLeft-=1;
+                if(this._physijs.linearVelocity.y<0){
+                    this.setLinearVelocity(new THREE.Vector3(x,16,0));
+                    floor.hopLeft-=1;    
+                }
             }
             else{
                 this.setLinearVelocity(new THREE.Vector3(x,-3,0));
             }
         });
         this.scene.add(this.ball);
+    }        
+        
+    initSpike(){
+        var material = new THREE.MeshPhongMaterial({color:0xffff00})
+        
+        var loader = new THREE.TextureLoader();
+        var scene = this.scene;
+        var context = this
+        loader.load(
+            'assets/red-hot-metal.jpg',
+            function ( texture ) {
+                material = new THREE.MeshBasicMaterial( {
+                    map: texture
+                } );
+                var sphereGeometry = new THREE.ConeGeometry(0.5, 1, 32);
+        
+        
+                var createCone = function() {
+                    var sphere = new THREE.Mesh(sphereGeometry, material);
+                    sphere.castShadow = true;
+                    return sphere;
+                }
+                var groupGeometry = new THREE.Geometry();
+
+                for(let i = -25 ; i < 51; i++){
+                    var sphereMesh = createCone()
+                    sphereMesh.position.set(i,0,0)
+                    sphereMesh.updateMatrix()
+                    
+                    groupGeometry.merge(sphereMesh.geometry, sphereMesh.matrix)
+                }
+
+                context.spikes = new THREE.Mesh(groupGeometry,material)
+                context.spikes.position.y= -100
+                scene.add(context.spikes)
+            }
+        );
     }
 
+<<<<<<< HEAD
     init(renderer){
+=======
+    init(){
+        this.end = false;
+>>>>>>> 1cfa73f9b334121b932c67866262347cdd2f74d4
         this.floorTexture;
         let GameContext = this;        
         var mtlLoader = new THREE.MTLLoader();                        
@@ -95,7 +140,10 @@ class Game{
                 console.log("Done");
             })
         }) 
+<<<<<<< HEAD
         //  while(isLoading);        
+=======
+>>>>>>> 1cfa73f9b334121b932c67866262347cdd2f74d4
         this.scene = new Physijs.Scene();
         this.scene.setGravity(new THREE.Vector3(0, -22, 0));
         this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -109,12 +157,11 @@ class Game{
         this.camera.add(light);
 
         this.scene.add(this.camera);
-
+        this.initSpike()
         this.score = 0;
         if(this.scoreHtml == null){
             var scoreHtml = document.createElement('div');
             scoreHtml.style.position = 'absolute';
-            //scoreHtml.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
             scoreHtml.style.width = 100;
             scoreHtml.style.height = 100;
             scoreHtml.style.color = "red";
@@ -129,12 +176,37 @@ class Game{
 
         this.initBall();
         this.initFloor();
+        this.showGameOver();
 
         var video = document.getElementById('video');
         var texture = new THREE.VideoTexture(video);
         texture.minFilter = THREE.NearestFilter;
-        this.scene.background = texture;
+        this.scene.background = texture;    
+        
+    }
 
+    showGameOver()
+    {
+        let GameContext = this;
+        var loader = new THREE.FontLoader();
+        loader.load( 'assets/font.typeface.json', function ( font ) {
+            var geometry = new THREE.TextGeometry( 'Alfian', {
+                font: font,
+                size: 1,
+                height: 1,
+                curveSegments: 12,
+                bevelEnabled: true,
+                bevelThickness: 2,
+                bevelSize: 5
+                } );
+            var material = new THREE.MeshPhongMaterial({color : 0x0000ff});
+            var mesh = new THREE.Mesh(geometry,material);
+            mesh.position.set(GameContext.ball.position.x,GameContext.ball.position.y,GameContext.ball.position.z);
+            // console.log(GameContext.floors[0].obj.position);
+            // console.log(mesh.position);
+            // console.log(GameContext.ball.position);  
+            GameContext.scene.add(mesh);
+        } );
     }
 
     getRandomFloat(min, max) {
@@ -155,7 +227,7 @@ class Game{
             
             var floor = new Physijs.BoxMesh(floorGeom,floorMaterial,0);
             floor.translateY(this.floorHeight);
-            floor.translateX(this.getRandomFloat(-15,15));    
+            floor.translateX(this.getRandomFloat(-15,15));
             floor.hopLeft=5;
             floor.name=floor.uuid;
                             
@@ -174,22 +246,31 @@ class Game{
                     objLoader.load("assets/block.obj", function(mesh){                                       
                         mesh.castShadow = true;
                         mesh.receiveShadow = true;
-                        GameContext.scene.add(mesh);
-                        mesh.position.set(x,y,z);                        
+                        mesh.scale.setScale(2,1,1);
+                        fTexture = mesh;
+                        GameContext.scene.add(mesh);                        
                     })
                 })
             } else {
                 fTexture = this.floorTexture.clone();
-                this.scene.add()
             }
             
 
-            this.scene.add(floor);
-            this.scene.add(fTexture);
-            let tempSpeed = this.getRandomFloat(-10,10)/100.0;
+            // this.scene.add(floor);
+            // this.scene.add(fTexture);
+            //     fTexture.position.set(floor.position.x,floor.position.y,floor.position.z + 1);
+            //     fTexture.position.x -= 1.3;
+            //     fTexture.position.y -= 0.7;
+            //     fTexture.scale.set(2.6,1,1.5);
+            //     this.scene.add(fTexture);
+            // }
+            
+
+            this.scene.add(floor);            
+           let tempSpeed = this.getRandomFloat(-10,10)/100.0;
             this.floors.push({obj:floor,texture: fTexture,speed:tempSpeed});                                       
         }
-        this.floorHeight+=4;
+        this.floorHeight+=4;    
         
     }
 
@@ -234,7 +315,17 @@ class Game{
         
         for(let i=1;i<this.floors.length;i++){            
             let f = this.floors[i];
+<<<<<<< HEAD
             let t = this.floorsTextures[i];                        
+=======
+            if(f.obj.position.y < this.spikes.position.y){
+                this.scene.remove(f.obj);
+                this.scene.remove(f.texture);
+                this.floors.splice(i,1);
+                i--;
+                continue;
+            }
+>>>>>>> 1cfa73f9b334121b932c67866262347cdd2f74d4
             f.obj.__dirtyPosition=true;
             f.obj.translateX(f.speed);
             if (typeof f.texture != 'undefined')f.texture.translateX(f.speed);
@@ -242,11 +333,18 @@ class Game{
             if(f.obj.position.x < -15 || f.obj.position.x > 15){
                 f.speed*=-1;
             }
+<<<<<<< HEAD
             if(f.obj.hopLeft <= 0){
                 //remove object from scene and array list
                 let obj = this.scene.getObjectByName(f.obj.name);
                 this.scene.remove(obj);                                
+=======
+            if(f.obj.hopLeft <= 0){                
+                this.scene.remove(f.obj);
+                this.scene.remove(f.texture);
+>>>>>>> 1cfa73f9b334121b932c67866262347cdd2f74d4
                 this.floors.splice(i,1);
+                i--;
             }
             else{
                 f.obj.material.color = new THREE.Color(this.getFloorColor(f.obj.hopLeft));
@@ -256,12 +354,15 @@ class Game{
 
     updateScore(){
         this.score = Math.max(this.score, this.ball.position.y);
-        this.scoreHtml.innerHTML = Math.floor(this.score);
+        this.scoreHtml.innerHTML = "Score: "+Math.floor(this.score);
     }
 
     update(){
         if(this.getCameraHeight()+15 > this.floorHeight){
             this.addNewFloor();
+        }
+        else if(this.spikes == undefined){
+            return
         }
         this.updateFloor();
     
@@ -277,8 +378,11 @@ class Game{
         this.ball.__dirtyPosition=true;
         this.ball.__dirtyRotation=true;
         let bPos = this.ball.position;
-        if(bPos.y < -2){
-            this.init();
+        if(this.spikes){
+            if(bPos.y < this.spikes.position.y){
+                this.end = true;
+            }
+            this.spikes.position.y=this.score-10
         }
         if(this.moveLeft){
             this.ball.position.x-=0.12;
@@ -290,7 +394,11 @@ class Game{
         this.camera.position.set(0,this.getCameraHeight(),25);
         this.camera.lookAt(bPos);    
         this.scene.simulate();
-        this.updateScore();
+        this.updateScore();        
+    }
+
+    isEnd(){
+        return this.end;
     }
 
     getCameraHeight(){
