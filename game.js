@@ -212,6 +212,7 @@ class Game{
                     objLoader.load("assets/block.obj", function(mesh){                                       
                         mesh.castShadow = true;
                         mesh.receiveShadow = true;
+                        mesh.scale.setScale(2,1,1);
                         fTexture = mesh;
                         GameContext.scene.add(mesh);                        
                     })
@@ -219,6 +220,9 @@ class Game{
             } else {
                 fTexture = this.floorTexture.clone();
                 fTexture.position.set(floor.position.x,floor.position.y,floor.position.z + 1);
+                fTexture.position.x -= 1.3;
+                fTexture.position.y -= 0.7;
+                fTexture.scale.set(2.6,1,1.5);
                 this.scene.add(fTexture);
             }
             
