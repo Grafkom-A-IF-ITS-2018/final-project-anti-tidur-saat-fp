@@ -120,6 +120,7 @@ class Game{
     }
 
     init(){
+        this.end = false;
         this.floorTexture;
         let GameContext = this;        
         var mtlLoader = new THREE.MTLLoader();                        
@@ -146,6 +147,27 @@ class Game{
         this.scene.add(ambientLight);
         var light = new THREE.PointLight(0xffffff, 0.5, Infinity);
         this.camera.add(light);
+
+
+        var loader = new THREE.FontLoader();
+
+        loader.load( 'assets/font.typeface.json', function ( font ) {
+            var geometry = new THREE.TextGeometry( 'Hello', {
+                font: font,
+                size: 100,
+                height: 50,
+                curveSegments: 12,
+                bevelEnabled: true,
+                bevelThickness: 10,
+                bevelSize: 8,
+                bevelSegments: 5
+                } );
+            var material = new THREE.MeshNormalMaterial({color : 0x000000});
+            var mesh = new THREE.Mesh(geometry,material);
+            console.log(mesh.position);
+            GameContext.scene.add(mesh);
+        } );
+
 
         this.scene.add(this.camera);
         this.initSpike()
@@ -177,6 +199,11 @@ class Game{
 
     getRandomFloat(min, max) {
         return Math.floor(Math.random() * (max - min)) + min;
+    }
+
+    showGameOver()
+    {
+
     }
 
     addNewFloor(){
@@ -330,7 +357,7 @@ class Game{
         let bPos = this.ball.position;
         if(this.spikes){
             if(bPos.y < this.spikes.position.y){
-                this.init();
+                this.end = true;
             }
             this.spikes.position.y=this.score-10
         }
@@ -345,6 +372,10 @@ class Game{
         this.camera.lookAt(bPos);    
         this.scene.simulate();
         this.updateScore();        
+    }
+
+    isEnd(){
+        return this.end;
     }
 
     getCameraHeight(){
