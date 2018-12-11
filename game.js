@@ -20,7 +20,7 @@ class Game{
 
         this.floorHeight = 0;        
 
-        var floorGeom = new THREE.CubeGeometry(25,0.5, 0);
+        var floorGeom = new THREE.CubeGeometry(25,0.8, 0);
         var floorMaterial = Physijs.createMaterial(
             new THREE.MeshBasicMaterial({color: 0xff0000}),
             0,0
@@ -296,8 +296,8 @@ class Game{
         this.camera.position.y = 2;
         this.camera.position.z = 25;
         
-        // var ambientLight = new THREE.AmbientLight(0xffffff,0.7);
-        // this.scene.add(ambientLight);
+        var ambientLight = new THREE.AmbientLight(0xffffff,0.7);
+        this.scene.add(ambientLight);
         var light = new THREE.PointLight(0xffffff, 0.5, Infinity);
         this.camera.add(light);
 
@@ -318,7 +318,7 @@ class Game{
         //Physijs.CylinderMesh(geometry,material,gravity)                
         
         for(let i=0;i<2;i++){            
-            var floorGeom = new THREE.CubeGeometry(2.5,0.5, 0);
+            var floorGeom = new THREE.CubeGeometry(2.5,0.75, 0);
             var floorMaterial = Physijs.createMaterial(
                 new THREE.MeshPhongMaterial({color: 0xff0000}),
                 0,2
@@ -465,12 +465,10 @@ class Game{
         this.ball.__dirtyPosition=true;
         this.ball.__dirtyRotation=true;
         let bPos = this.ball.position;
-        if(this.spikes != undefined){
-            if(bPos.y < this.spikes.position.y){
-                this.showGameOver();
-            }
-            else {this.spikes.position.y=this.score-10}
+        if(bPos.y-1 < this.spikes.position.y){
+            this.showGameOver();
         }
+        else {this.spikes.position.y=this.score-10}
         if(this.moveLeft){
             this.ball.position.x-=0.12;
         }
