@@ -1,6 +1,8 @@
 class Game{
 
     constructor() {
+        this.end=false
+        this.onMenu=true
         this.init();
     }
 
@@ -126,6 +128,7 @@ class Game{
     }
 
     showMenu(){
+        console.log('show menu')
         this.onMenu = true;
         let GameContext = this;        
         var loader = new THREE.FontLoader();
@@ -179,8 +182,12 @@ class Game{
 
     fromMenuToPlay(){
         console.log("Play");
-        this.camera.remove(this.TextMenu1);
-        this.camera.remove(this.TextMenu2);
+        if(this.TextMenu1){
+            this.camera.remove(this.TextMenu1);
+        }
+        if(this.TextMenu2){
+            this.camera.remove(this.TextMenu2);
+        }
         this.onMenu = false;
 
         this.initSpike()
@@ -204,8 +211,22 @@ class Game{
         this.initFloor();
     }
 
+    check(event){
+        var keyCode = event.which;
+        if (this.onMenu) this.fromMenuToPlay();
+        else if (this.end) this.fromGameOverToMenu();
+        else if (keyCode == 65) {//A
+            this.moveBallToLeft();
+        }
+        else if (keyCode == 68) {//D
+            this.moveBallToRight();
+        }
+
+    }
     showGameOver()
-    {
+    {   this.end = false
+        console.log('on game over')
+        this.end = true;
         for(let i=0;i<this.floors.length;i++){            
             let f = this.floors[i].obj;
             let t = this.floors[i].texture;
@@ -214,6 +235,7 @@ class Game{
         }
         this.scene.remove(this.ball);
         this.scene.remove(this.spikes);
+        this.spikes = undefined
         let GameContext = this;
         
         var loader = new THREE.FontLoader();
@@ -233,17 +255,24 @@ class Game{
             } );
 
         var textMaterial = new THREE.MeshBasicMaterial( { color: 0x696969 } );
-        var mesh = new THREE.Mesh( textGeo, textMaterial );                                
+        var mesh = new THREE.Mesh( textGeo, textMaterial );   
         GameContext.over = mesh;
         GameContext.over.position.set(-25,0,-100);  
-        GameContext.scene.add(GameContext.camera);          
+        //GameContext.scene.add(GameContext.camera);          
         GameContext.camera.add(GameContext.over);
         });
     }
 
+    fromGameOverToMenu(){
+        this.camera.remove(this.over);
+        this.scene.remove(this.camera);
+        this.over = undefined;
+        this.end = false;
+        this.init(); 
+    }
 
     init(){
-        this.floorTexture;
+        this.end = false
         if (this.floorTexture == undefined){
             console.log("Texture belum di load")
             let GameContext = this;        
@@ -267,8 +296,8 @@ class Game{
         this.camera.position.y = 2;
         this.camera.position.z = 25;
         
-        var ambientLight = new THREE.AmbientLight(0xffffff,0.7);
-        this.scene.add(ambientLight);
+        // var ambientLight = new THREE.AmbientLight(0xffffff,0.7);
+        // this.scene.add(ambientLight);
         var light = new THREE.PointLight(0xffffff, 0.5, Infinity);
         this.camera.add(light);
 
@@ -330,9 +359,13 @@ class Game{
                 fTexture.scale.set(2.6,1,1.5);
                 this.scene.add(fTexture);                
             }            
-            this.scene.add(floor);            
+            this.scene.add(floor);
+            let light = new THREE.RectAreaLight(0xffffff, 1, 2.5, 1);
+            this.scene.add(light);
+            light.position.set(floor.position.x, floor.position.y, floor.position.z - 1.8);
+            
             let tempSpeed = this.getRandomFloat(-10,10)/100.0;
-            this.floors.push({obj:floor,texture: fTexture,speed:tempSpeed});                                       
+            this.floors.push({obj:floor,light: light,texture: fTexture,speed:tempSpeed});                                       
         }
         this.floorHeight+=4;    
         
@@ -381,6 +414,7 @@ class Game{
             if(f.obj.position.y < this.spikes.position.y){
                 this.scene.remove(f.obj);
                 this.scene.remove(f.texture);
+                this.scene.remove(f.light);
                 this.floors.splice(i,1);
                 i--;
                 continue;
@@ -388,6 +422,7 @@ class Game{
             f.obj.__dirtyPosition=true;
             f.obj.translateX(f.speed);
             if (typeof f.texture != 'undefined')f.texture.translateX(f.speed);
+            if (typeof f.light != 'undefined')f.light.translateX(f.speed);
             // f.view.position.set(f.position.x, f.position.y, f.position.z + 1);
             if(f.obj.position.x < -15 || f.obj.position.x > 15){
                 f.speed*=-1;
@@ -430,11 +465,11 @@ class Game{
         this.ball.__dirtyPosition=true;
         this.ball.__dirtyRotation=true;
         let bPos = this.ball.position;
-        if(this.spikes){
+        if(this.spikes != undefined){
             if(bPos.y < this.spikes.position.y){
                 this.showGameOver();
             }
-            this.spikes.position.y=this.score-10
+            else {this.spikes.position.y=this.score-10}
         }
         if(this.moveLeft){
             this.ball.position.x-=0.12;

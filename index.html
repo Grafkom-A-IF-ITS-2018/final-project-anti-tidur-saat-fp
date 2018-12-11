@@ -56,14 +56,11 @@
         document.getElementById("WebGL-output").appendChild(renderer.domElement);
 
         render();
-        function render() {
-            if(true)
-            {
-                game.update();
-                stats.update();                        
-                requestAnimationFrame(render);                        
-                renderer.render(game.scene, game.camera);                       
-            }
+        function render() {            
+            game.update();
+            stats.update();                        
+            requestAnimationFrame(render);                        
+            renderer.render(game.scene, game.camera);                                   
         }
 
         function initStats() {
@@ -89,14 +86,7 @@
     window.addEventListener( "resize", onWindowResize, false );
 
     function onDocumentKeyDown(event) {
-        var keyCode = event.which;         
-        if (game.onMenu != undefined && game.onMenu) game.fromMenuToPlay();
-        if (keyCode == 65) {//A
-            game.moveBallToLeft();
-        }
-        else if (keyCode == 68) {//D
-            game.moveBallToRight();
-        }
+        game.check(event)      
     };
     function onDocumentKeyUp(event) {
         var keyCode = event.which;
