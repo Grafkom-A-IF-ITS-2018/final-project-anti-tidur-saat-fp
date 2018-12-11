@@ -3,6 +3,23 @@ class Game{
     constructor() {
         this.end=false
         this.onMenu=true
+        var context = this;
+        var loader = new THREE.TextureLoader();
+
+        // load a resource
+        loader.load(
+            'assets/ball.jpg',
+
+            function ( texture ) {
+                context.ballTexture = texture
+            },
+
+            undefined,
+
+            function ( err ) {
+                console.error( 'An error happened.' );
+            }
+        );
         this.init();
     }
 
@@ -63,7 +80,8 @@ class Game{
 
         var geometry = new THREE.SphereGeometry(0.5, 15, 15);
         var material =  Physijs.createMaterial(
-            new THREE.MeshPhongMaterial( {color: 0xff0000} ),0.8,1.0
+            new THREE.MeshPhongMaterial( {map: this.ballTexture} ),0.8,1.0
+            // new THREE.MeshPhongMaterial( {color: 0xff0000} ),0.8,1.0
         );
     
         this.ball = new Physijs.SphereMesh( geometry, material );
